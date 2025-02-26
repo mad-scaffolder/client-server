@@ -39,7 +39,7 @@ int main()
 	SOCKET clientSock = accept(servSock, (sockaddr*)&clientAddr, &clientAddrSize);
 	ClientSockAddr(clientSock, servSock, clientAddr);
 
-	//Receive data
+	//Receive and send data
 	std::vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
 	int packetSize = 0;
 	RecieveAndSend(clientSock, servSock, packetSize, clientBuff, servBuff);

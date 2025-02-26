@@ -38,12 +38,22 @@ void CheckConnection(int& erStat, SOCKET& clientSock) {
 	else { std::cout << "Connection to server is successfull" << std::endl; }
 }
 
-void CheckExit(SOCKET& clientSock, std::vector<char>& clientBuff) {
+bool CheckExit(std::vector<char>& clientBuff) {
 	if (clientBuff[0] == 'e' && clientBuff[1] == 'x' &&
 		clientBuff[2] == 'i' && clientBuff[3] == 't') {
-		shutdown(clientSock, SD_BOTH);
+		return true;
+	}
+	else { return false; }
+}
+
+void RecieveData(SOCKET& clientSock, int& packetSize, std::vector<char>& servBuff) {
+	packetSize = recv(clientSock, servBuff.data(), BUFFER_SIZE, 0);
+	if (packetSize == SOCKET_ERROR) {
+		std::cout << "Error in receiving data" << std::endl;
 		CLOSESOCK
 	}
+	std::cout << "Server: " << servBuff.data() << std::endl;
+	ZeroMemory(servBuff.data(), BUFFER_SIZE);
 }
 
 void SendAndRecieve(SOCKET& clientSock, int& packetSize,
@@ -59,15 +69,13 @@ void SendAndRecieve(SOCKET& clientSock, int& packetSize,
 			break;
 		}
 
-		//Check the 'exit' sent from client
-		CheckExit(clientSock, clientBuff);
-
-		packetSize = recv(clientSock, servBuff.data(), BUFFER_SIZE, 0);
-		if (packetSize == SOCKET_ERROR) {
-			std::cout << "Error in receiving data" << std::endl;
+		if (CheckExit(clientBuff)) {
+			shutdown(clientSock, SD_BOTH);
 			CLOSESOCK
+			
 			break;
 		}
-		std::cout << "Server: " << servBuff.data() << std::endl;
+		else { RecieveData(clientSock, packetSize, servBuff); }
 	}
 }
+

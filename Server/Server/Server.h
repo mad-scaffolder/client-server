@@ -4,11 +4,14 @@
 #include <WS2tcpip.h>
 #include <inaddr.h>
 #include <vector>
+#include <string>
+#include <algorithm>
 
 #pragma comment(lib, "Ws2_32.lib")
 
 #define CLOSESOCK closesocket(servSock); WSACleanup();
 #define CLOSEBOTHSOCKS closesocket(clientSock); closesocket(servSock); WSACleanup();
+#define SOCKETLIST SOCKET& clientSock, SOCKET& servSock
 
 //Constants
 const char IP_SERV[] = "127.0.0.1";
@@ -27,9 +30,6 @@ void CheckBind(int& erStat, SOCKET& servSock);
 
 void CheckListen(int& erStat, SOCKET& servSock);
 
-void ClientSockAddr(SOCKET& clientSock, SOCKET& servSock, sockaddr_in& clientAddr);
+void ClientSockAddr(SOCKETLIST, sockaddr_in& clientAddr);
 
-void RecieveAndSend(SOCKET& clientSock,
-					SOCKET& servSock, int& packetSize,
-					std::vector<char>& clientBuff,
-					std::vector<char>& servBuff);
+void RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff);

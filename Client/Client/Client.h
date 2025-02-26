@@ -22,7 +22,7 @@ void ServSockAddr(sockaddr_in& serverAddr, in_addr& ip);
 
 void CheckConnection(int& erStat, SOCKET& sock);
 
-void CheckExit(SOCKET& clientSock, std::vector<char>& clientBuff);
+bool CheckExit(std::vector<char>& clientBuff);
 
 void SendAndRecieve(SOCKET& clientSock, int& packetSize,
 					std::vector<char>& clientBuff,
