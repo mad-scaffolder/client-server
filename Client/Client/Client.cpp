@@ -1,85 +1,71 @@
-#include <iostream>
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <inaddr.h>
-#include <stdio.h>
-#include <vector>
+#include "Client.h"
 
-#pragma comment(lib, "Ws2_32.lib")
-
-int main()
-{
-    //Constants
-	const char SERVER_IP[] = "127.0.0.1";
-	const int SERVER_PORT = 54000;
-	const int BUFFER_SIZE = 1024;
-
-	//Keep error code in erStat
-	//Successfull translation is kept in ipToNum
-	int erStat;
-	in_addr ipToNum;
-
-	erStat = inet_pton(AF_INET, SERVER_IP, &ipToNum);
+void CheckIP(int& erStat) {
 	if (erStat <= 0) {
 		std::cout << "Error in IP translation to special numeric format" << std::endl;
-		return 1;
 	}
 	else { std::cout << "IP translation to special numeric format is successfull" << std::endl; }
-	
-	//WinSock initialization
-	WSADATA wsData;
-	erStat = WSAStartup(MAKEWORD(2, 2), &wsData);
+}
+
+void CheckWinSock(int& erStat) {
 	if (erStat != 0) {
 		std::cout << "Error in WinSock initialization" << std::endl;
-		return 1;
 	}
 	else { std::cout << "WinSock initialization is successfull" << std::endl; }
-	
-	//Create socket
-	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (clientSocket == INVALID_SOCKET) {
+}
+
+void CheckSocket(SOCKET& clientSock) {
+	if (clientSock == INVALID_SOCKET) {
 		std::cout << "Error in socket creation" << std::endl;
-		closesocket(clientSocket);
-		WSACleanup();
-		return 1;
+		CLOSESOCK
 	}
 	else { std::cout << "Socket creation is successfull" << std::endl; }
+}
 
-	//Connect to server
-	sockaddr_in serverAddr;
-	ZeroMemory(&serverAddr, sizeof(serverAddr));
+void ServSockAddr(sockaddr_in& servAddr, in_addr& ip) {
+	ZeroMemory(&servAddr, sizeof(servAddr));
 
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(SERVER_PORT);
-	serverAddr.sin_addr = ipToNum;
+	servAddr.sin_family = AF_INET;
+	servAddr.sin_port = htons(SERVER_PORT);
+	servAddr.sin_addr = ip;
+}
 
-	erStat = connect(clientSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+void CheckConnection(int& erStat, SOCKET& clientSock) {
 	if (erStat != 0) {
 		std::cout << "Error in connection to server" << std::endl;
-		closesocket(clientSocket);
-		WSACleanup();
-		return 1;
+		CLOSESOCK
 	}
 	else { std::cout << "Connection to server is successfull" << std::endl; }
+}
 
-	//Send and receive data
-	std::vector<char> servBuff(BUFFER_SIZE), clientBuff(BUFFER_SIZE);
-	int packetSize = 0;
+void CheckExit(SOCKET& clientSock, std::vector<char>& clientBuff) {
+	if (clientBuff[0] == 'e' && clientBuff[1] == 'x' &&
+		clientBuff[2] == 'i' && clientBuff[3] == 't') {
+		shutdown(clientSock, SD_BOTH);
+		CLOSESOCK
+	}
+}
+
+void SendAndRecieve(SOCKET& clientSock, int& packetSize,
+					std::vector<char>& clientBuff,
+					std::vector<char>& servBuff) {
 	while (true) {
 		std::cout << "Enter message: ";
 		std::cin.getline(clientBuff.data(), BUFFER_SIZE);
-		packetSize = send(clientSocket, clientBuff.data(), BUFFER_SIZE, 0);
+		packetSize = send(clientSock, clientBuff.data(), BUFFER_SIZE, 0);
 		if (packetSize == SOCKET_ERROR) {
 			std::cout << "Error in sending data" << std::endl;
-			closesocket(clientSocket);
-			WSACleanup();
+			CLOSESOCK
 			break;
 		}
-		packetSize = recv(clientSocket, servBuff.data(), BUFFER_SIZE, 0);
+
+		//Check the 'exit' sent from client
+		CheckExit(clientSock, clientBuff);
+
+		packetSize = recv(clientSock, servBuff.data(), BUFFER_SIZE, 0);
 		if (packetSize == SOCKET_ERROR) {
 			std::cout << "Error in receiving data" << std::endl;
-			closesocket(clientSocket);
-			WSACleanup();
+			CLOSESOCK
 			break;
 		}
 		std::cout << "Server: " << servBuff.data() << std::endl;
