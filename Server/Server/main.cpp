@@ -27,6 +27,8 @@ int main()
 	erStat = bind(servSock, (sockaddr*)&servAddr, sizeof(servAddr));
 	CheckBind(erStat, servSock);
 
+	bool endFlag = false;
+
 	while (true) {
 		//Listen
 		erStat = listen(servSock, SOMAXCONN);
@@ -40,12 +42,12 @@ int main()
 		//Receive and send data
 		std::vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
 		int packetSize = 0;
-		if (RecieveAndSend(clientSock, servSock, packetSize, clientBuff, servBuff)) {
-			closesocket(clientSock);
-			std::cout << "Client disconnected." << std::endl;
+		std::thread thread = std::thread(RecieveAndSend, std::ref(clientSock), std::ref(servSock), 
+			std::ref(packetSize), std::ref(clientBuff), std::ref(servBuff), std::ref(endFlag));
+		thread.join();
+		if (endFlag == true) {
+			break;
 		}
-		//RecieveAndSend() returns false if "end" is received
-		else { break; }
 	}
 	std::cout << "Server shut down." << std::endl;
 	CLOSESOCK

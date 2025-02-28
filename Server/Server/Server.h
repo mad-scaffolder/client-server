@@ -19,6 +19,9 @@ const char IP_SERV[] = "127.0.0.1";
 const int PORT = 54000;
 const short BUFF_SIZE = 1024;
 
+//Shutdown flag
+//bool check = false;
+
 void CheckIP(int& erStat);
 
 void CheckWinSock(int& erStat);
@@ -33,4 +36,4 @@ void CheckListen(int& erStat, SOCKET& servSock);
 
 void ClientSockAddr(SOCKETLIST, sockaddr_in& clientAddr);
 
-bool RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff);
+void RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff, bool& endFlag);

@@ -62,12 +62,15 @@ void ClientSockAddr(SOCKETLIST, sockaddr_in& clientAddr) {
 
 //Checks if data recieved is an array or a text message
 int DataType(std::vector<char>& clientBuff) {
-	for (auto buff : clientBuff) {
+	int result = 0;
+	for (char buff : clientBuff) {
+		if (buff == '\0') { break; }
+		if (buff == ' ') continue;
 		if (!isdigit(buff)) {
-			return 1;
+			result = 1;
 		}
-		return 0;
 	}
+	return result;
 }
 
 //Send message to client
@@ -137,7 +140,9 @@ std::string SortArray(std::vector<char>& clientBuff) {
 	//Make array of integers from clientBuff
 	for (char buff : clientBuff) {
 		if (buff == '\0') {
-			arr.push_back(stoi(temp));
+			if (!temp.empty()) {
+				arr.push_back(stoi(temp));
+			}
 			break; 
 		}
 		if (isdigit(buff)) {
@@ -163,7 +168,7 @@ std::string SortArray(std::vector<char>& clientBuff) {
 	return result;
 }
 
-bool RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff) {
+void RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff, bool& endFlag) {
 	while (true) {
 		packetSize = recv(clientSock, clientBuff.data(), clientBuff.size(), 0);
 		if (packetSize == SOCKET_ERROR) {
@@ -184,13 +189,14 @@ bool RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, 
 			if (CheckExit(clientBuff)) {
 				std::cout << "Exit accepted." << std::endl;
 				shutdown(clientSock, SD_BOTH);
-				//CLOSEBOTHSOCKS
-					break;
+				closesocket(clientSock);
+				std::cout << "Client disconnected." << std::endl;
+				break;
 			}
 			if (CheckEnd(clientBuff)) {
 				std::cout << "End accepted." << std::endl;
-				//break;
-				return false;
+				endFlag = true;
+				break;
 			}
 			MsgToSend(servBuff, CountVowels(clientBuff));
 			SendData(clientSock, servSock, packetSize, servBuff);
@@ -200,6 +206,5 @@ bool RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, 
 			SendData(clientSock, servSock, packetSize, servBuff);
 		}
 	}
-	return true;
 }
 

@@ -15,6 +15,10 @@ Implemented at this point:
  - Server starts and waits in the background;
  - Client starts and establishes connection to Server;
  - Client sends data obtained from user input to Server;
+ - Server makes a thread and passes further interaction
+    with Client in it;
+ - Multiple Clients may be connected, but only first one in a queue
+    obtains responces from Server, all others are waiting;
  - Server takes data and performs one out of two possible
     operations with data and forms a response message to Client;
  - Server sends data to Client;
