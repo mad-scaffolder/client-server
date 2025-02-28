@@ -46,6 +46,14 @@ bool CheckExit(std::vector<char>& clientBuff) {
 	else { return false; }
 }
 
+bool CheckEnd(std::vector<char>& clientBuff) {
+	if (clientBuff[0] == 'e' && clientBuff[1] == 'n' &&
+		clientBuff[2] == 'd') {
+		return true;
+	}
+	else { return false; }
+}
+
 void RecieveData(SOCKET& clientSock, int& packetSize, std::vector<char>& servBuff) {
 	packetSize = recv(clientSock, servBuff.data(), BUFFER_SIZE, 0);
 	if (packetSize == SOCKET_ERROR) {
@@ -69,7 +77,7 @@ void SendAndRecieve(SOCKET& clientSock, int& packetSize,
 			break;
 		}
 
-		if (CheckExit(clientBuff)) {
+		if (CheckExit(clientBuff) || CheckEnd(clientBuff)) {
 			shutdown(clientSock, SD_BOTH);
 			CLOSESOCK
 			

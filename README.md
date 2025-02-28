@@ -6,9 +6,9 @@ Possible inputs:
  - a text message if any of characters is not a digit.
 
 Tasks chosen to solve:
- #17 - send an array of integers to Server, sort them
+ - send an array of integers to Server, sort them
     in descending order and return to Client;
- #24 - send a message to Server, found a number of vowels
+ - send a message to Server, found a number of vowels
     in a message, and return it to Client.
 
 Implemented at this point:
@@ -21,7 +21,9 @@ Implemented at this point:
  - Client takes data from Server, prints it and asks for 
     the next input from user;
  - If user message is 'exit', Client sends a message and disconects,
-    Server takes message and shuts down.
+    Server takes message, closes connection to Client and waits;
+ - If user message is 'end', Client sends a message and disconects,
+    Server takes message, closes connection to Client and shuts down.
 
 
 Estimated functionality:

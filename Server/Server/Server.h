@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <thread>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -32,4 +33,4 @@ void CheckListen(int& erStat, SOCKET& servSock);
 
 void ClientSockAddr(SOCKETLIST, sockaddr_in& clientAddr);
 
-void RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff);
+bool RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff);

@@ -27,24 +27,27 @@ int main()
 	erStat = bind(servSock, (sockaddr*)&servAddr, sizeof(servAddr));
 	CheckBind(erStat, servSock);
 
-	//Listen
-	erStat = listen(servSock, SOMAXCONN);
-	CheckListen(erStat, servSock);
-
-	//Client socket connection
-	sockaddr_in clientAddr;
-	ZeroMemory(&clientAddr, sizeof(clientAddr));
-	int clientAddrSize = sizeof(clientAddr);
-
-	SOCKET clientSock = accept(servSock, (sockaddr*)&clientAddr, &clientAddrSize);
-	ClientSockAddr(clientSock, servSock, clientAddr);
-
-	//Receive and send data
-	std::vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
-	int packetSize = 0;
-	RecieveAndSend(clientSock, servSock, packetSize, clientBuff, servBuff);
-
-	//Close sockets
-	CLOSEBOTHSOCKS
+	while (true) {
+		//Listen
+		erStat = listen(servSock, SOMAXCONN);
+		CheckListen(erStat, servSock);
+		//Client socket connection
+		sockaddr_in clientAddr;
+		ZeroMemory(&clientAddr, sizeof(clientAddr));
+		int clientAddrSize = sizeof(clientAddr);
+		SOCKET clientSock = accept(servSock, (sockaddr*)&clientAddr, &clientAddrSize);
+		ClientSockAddr(clientSock, servSock, clientAddr);
+		//Receive and send data
+		std::vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
+		int packetSize = 0;
+		if (RecieveAndSend(clientSock, servSock, packetSize, clientBuff, servBuff)) {
+			closesocket(clientSock);
+			std::cout << "Client disconnected." << std::endl;
+		}
+		//RecieveAndSend() returns false if "end" is received
+		else { break; }
+	}
+	std::cout << "Server shut down." << std::endl;
+	CLOSESOCK
 	return 0;
 }
