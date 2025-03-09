@@ -17,8 +17,8 @@ Implemented at this point:
  - Client sends data obtained from user input to Server;
  - Server makes a thread and passes further interaction
     with Client in it;
- - Multiple Clients may be connected, but only first one in a queue
-    obtains responces from Server, all others are waiting;
+ - Server takes multiple Clients and interracts with them
+    independently and without queue;
  - Server takes data and performs one out of two possible
     operations with data and forms a response message to Client;
  - Server sends data to Client;
@@ -35,6 +35,7 @@ Estimated functionality:
  - Client starts and establishes connection to Server;
  - Server makes a thread for the further interactions with
     Client and waits for the next Client;
+ - Each Client interracts with Server independently and without a queue;
  - Client sends data obtained from user input to Server;
  - Server takes data and performs one out of two possible
     operations with data and forms a response message to Client;

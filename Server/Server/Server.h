@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <thread>
+#include <mutex>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -18,9 +19,6 @@
 const char IP_SERV[] = "127.0.0.1";
 const int PORT = 54000;
 const short BUFF_SIZE = 1024;
-
-//Shutdown flag
-//bool check = false;
 
 void CheckIP(int& erStat);
 
@@ -36,4 +34,4 @@ void CheckListen(int& erStat, SOCKET& servSock);
 
 void ClientSockAddr(SOCKETLIST, sockaddr_in& clientAddr);
 
-void RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff, bool& endFlag);
+void RecieveAndSend(SOCKETLIST, bool& endFlag);

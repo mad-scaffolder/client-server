@@ -27,9 +27,13 @@ int main()
 	erStat = bind(servSock, (sockaddr*)&servAddr, sizeof(servAddr));
 	CheckBind(erStat, servSock);
 
+	//Initialize shutdown flag
 	bool endFlag = false;
-
-	while (true) {
+	//Store Client sockets
+	std::vector<SOCKET> clientSocks;
+	std::mutex mute;
+	while (!endFlag) {
+		
 		//Listen
 		erStat = listen(servSock, SOMAXCONN);
 		CheckListen(erStat, servSock);
@@ -37,19 +41,15 @@ int main()
 		sockaddr_in clientAddr;
 		ZeroMemory(&clientAddr, sizeof(clientAddr));
 		int clientAddrSize = sizeof(clientAddr);
-		SOCKET clientSock = accept(servSock, (sockaddr*)&clientAddr, &clientAddrSize);
+		clientSocks.push_back(accept(servSock, (sockaddr*)&clientAddr, &clientAddrSize));
+		SOCKET clientSock = clientSocks.back();
 		ClientSockAddr(clientSock, servSock, clientAddr);
-		//Receive and send data
-		std::vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
-		int packetSize = 0;
-		std::thread thread = std::thread(RecieveAndSend, std::ref(clientSock), std::ref(servSock), 
-			std::ref(packetSize), std::ref(clientBuff), std::ref(servBuff), std::ref(endFlag));
-		thread.join();
-		if (endFlag == true) {
-			break;
-		}
+
+		//Receive and send data in detached thread
+		std::thread thread = std::thread(RecieveAndSend, std::ref(clientSock), std::ref(servSock), std::ref(endFlag));
+		thread.detach();
 	}
 	std::cout << "Server shut down." << std::endl;
-	CLOSESOCK
-	return 0;
+	//CLOSESOCK
+		return 0;
 }

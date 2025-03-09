@@ -67,6 +67,9 @@ void RecieveData(SOCKET& clientSock, int& packetSize, std::vector<char>& servBuf
 void SendAndRecieve(SOCKET& clientSock, int& packetSize,
 					std::vector<char>& clientBuff,
 					std::vector<char>& servBuff) {
+	std::cout << "Enter 'exit' to close connection." << std::endl 
+		<< "Enter 'end' to close connextion and shut down server." << std::endl
+		<< "Warning! If you shut down server all other connections will fail." << std::endl;
 	while (true) {
 		std::cout << "Enter message: ";
 		std::cin.getline(clientBuff.data(), BUFFER_SIZE);

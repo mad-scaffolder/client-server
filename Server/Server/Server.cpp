@@ -83,7 +83,7 @@ void SendData(SOCKETLIST, int& packetSize, std::vector<char>& servBuff) {
 	else { std::cout << "Data sent successfully." << std::endl; }
 }
 
-//Check exit condition
+//Check if Client wants to exit
 bool CheckExit(std::vector<char>& clientBuff) {
 	if (clientBuff[0] == 'e' && clientBuff[1] == 'x' &&
 		clientBuff[2] == 'i' && clientBuff[3] == 't') {
@@ -92,6 +92,7 @@ bool CheckExit(std::vector<char>& clientBuff) {
 	else { return false; }
 }
 
+//Check if Server must shut down
 bool CheckEnd(std::vector<char>& clientBuff) {
 	if (clientBuff[0] == 'e' && clientBuff[1] == 'n' &&
 		clientBuff[2] == 'd') {
@@ -107,8 +108,9 @@ void MsgToSend(std::vector<char>& servBuff, std::string msg) {
 	servBuff.push_back('\n');
 }
 
+//Check if character is a vowel
 bool IsVowel(char& c) {
-	char vowels[] = { 'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'};
+	char vowels[] = { 'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U' };
 	bool result = false;
 	for (char vowel : vowels) {
 		if (vowel == c) { result = true; break; }
@@ -128,7 +130,7 @@ std::string CountVowels(std::vector<char>& clientBuff) {
 	return result;
 }
 
-bool compare(int a, int b) {
+bool Compare(int a, int b) {
 	return a > b;
 }
 
@@ -143,7 +145,7 @@ std::string SortArray(std::vector<char>& clientBuff) {
 			if (!temp.empty()) {
 				arr.push_back(stoi(temp));
 			}
-			break; 
+			break;
 		}
 		if (isdigit(buff)) {
 			temp.insert(temp.end(), 1, buff);
@@ -152,14 +154,14 @@ std::string SortArray(std::vector<char>& clientBuff) {
 			if (!temp.empty()) {
 				arr.push_back(stoi(temp));
 				temp.clear();
-			} 
+			}
 			else { continue; }
 		}
 		else { continue; }
 	}
 
 	//Sort and return string value
-	std::sort(arr.begin(), arr.end(), compare);
+	std::sort(arr.begin(), arr.end(), Compare);
 	for (int a : arr) {
 		result.append(std::to_string(a));
 		result.append(" ");
@@ -168,15 +170,19 @@ std::string SortArray(std::vector<char>& clientBuff) {
 	return result;
 }
 
-void RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, std::vector<char>& servBuff, bool& endFlag) {
-	while (true) {
-		packetSize = recv(clientSock, clientBuff.data(), clientBuff.size(), 0);
+void RecieveAndSend(SOCKETLIST, bool& endFlag) {
+	std::vector <char> servBuff(BUFF_SIZE), clientBuff(BUFF_SIZE);
+	int packetSize = 0;
+	SOCKET trueClientSock = clientSock;
+	while (true) {	
+		packetSize = recv(trueClientSock, clientBuff.data(), clientBuff.size(), 0);
+
 		if (packetSize == SOCKET_ERROR) {
 			std::cout << "Error in receiving data" << std::endl;
 			break;
 		}
 		else if (packetSize == 0) {
-			std::cout << "Client disconnected" << std::endl;
+			std::cout << "Client " << trueClientSock << " disconnected." << std::endl;
 			break;
 		}
 		else {
@@ -188,23 +194,27 @@ void RecieveAndSend(SOCKETLIST, int& packetSize, std::vector<char>& clientBuff, 
 		if (dataType == 1) {
 			if (CheckExit(clientBuff)) {
 				std::cout << "Exit accepted." << std::endl;
-				shutdown(clientSock, SD_BOTH);
-				closesocket(clientSock);
-				std::cout << "Client disconnected." << std::endl;
+				shutdown(trueClientSock, SD_BOTH);
+				closesocket(trueClientSock);
+				std::cout << "Client " << trueClientSock << " disconnected." << std::endl;
 				break;
 			}
 			if (CheckEnd(clientBuff)) {
 				std::cout << "End accepted." << std::endl;
 				endFlag = true;
+				shutdown(trueClientSock, SD_BOTH);
+				closesocket(trueClientSock);
+				CLOSESOCK
 				break;
 			}
 			MsgToSend(servBuff, CountVowels(clientBuff));
-			SendData(clientSock, servSock, packetSize, servBuff);
+			SendData(trueClientSock, servSock, packetSize, servBuff);
 		}
 		else {
 			MsgToSend(servBuff, SortArray(clientBuff));
-			SendData(clientSock, servSock, packetSize, servBuff);
+			SendData(trueClientSock, servSock, packetSize, servBuff);
 		}
+		std::this_thread::yield();
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 }
-
